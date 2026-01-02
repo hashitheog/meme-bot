@@ -165,6 +165,7 @@ class Bot:
                 # Limit reached: Do not alert, do not enter trade
                 # Maybe log it as "Missed Signal"
                 logger.info(f"Buffered Max Signals ({open_count}/4). Suppressing alert for {token.base_token_symbol}.")
+                print(f"{Fore.YELLOW}🛑 MAX SIGNALS REACHED ({open_count}/4). SUPPRESSING ALERT FOR {token.base_token_symbol} 🛑")
                 # Optional: Send a "Missed" notification if desired, but user said "only 4 signals at most".
                 # So we stay silent.
                 return 
