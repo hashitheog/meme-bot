@@ -65,6 +65,19 @@ class PaperTrader:
             conn.close()
             return False
             
+    def get_active_pairs(self) -> List[tuple]:
+        """Returns list of (chain_id, token_address) for all open trades."""
+        conn = self._get_conn()
+        c = conn.cursor()
+        try:
+            # chain_id column name check? In enter_trade we used 'chain_id'
+            c.execute("SELECT chain_id, token_address FROM trades WHERE status='OPEN'")
+            return c.fetchall()
+        except:
+             return []
+        finally:
+             conn.close()
+
     def get_open_count(self) -> int:
         """Returns number of currently open trades"""
         conn = self._get_conn()

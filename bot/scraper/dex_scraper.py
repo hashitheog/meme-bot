@@ -115,6 +115,40 @@ class DexScraper:
                 raw_data=data
             )
             return token
+            return token
         except Exception as e:
             logger.error(f"Normalization failed: {e}")
             return None
+
+    async def fetch_specific_pairs(self, pairs_to_fetch: List[Tuple[str, str]]) -> List[Token]:
+        """
+        Fetches up-to-date data for specific pairs.
+        pairs_to_fetch: List of (chain_id, pair_address) tuples
+        """
+        if not pairs_to_fetch:
+            return []
+            
+        # Group by chain
+        by_chain = {}
+        for chain, addr in pairs_to_fetch:
+            if chain not in by_chain: by_chain[chain] = []
+            by_chain[chain].append(addr)
+            
+        tasks = []
+        for chain, addrs in by_chain.items():
+            # DexAPI.get_token_pairs internally chunks/calls API
+            tasks.append(self.api.get_token_pairs(chain, addrs))
+            
+        # Execute concurrently
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        tokens = []
+        for chain_res in results:
+            if isinstance(chain_res, list):
+                for pair_data in chain_res:
+                    token = self._normalize_pair(pair_data)
+                    if token: tokens.append(token)
+            elif isinstance(chain_res, Exception):
+                logger.error(f"Error fetching specific pairs: {chain_res}")
+                    
+        return tokens

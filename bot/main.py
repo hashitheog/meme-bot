@@ -85,6 +85,17 @@ class Bot:
                 # 1. Scrape
                 tokens = await self.scraper.run_cycle()
                 
+                # --- FRESH PRICE UPDATE FOR HELD TOKENS ---
+                # Fetch latest data for tokens we actively hold to ensure balance updates
+                active_pairs = self.trader.get_active_pairs() # List of (chain_id, pair_address)
+                if active_pairs:
+                    held_tokens = await self.scraper.fetch_specific_pairs(active_pairs)
+                    if held_tokens:
+                        # Append to tokens list so they get into token_map
+                        # Duplicates don't matter as dict overwrite handles it
+                        tokens.extend(held_tokens)
+                        logger.info(f"Refreshed prices for {len(held_tokens)} active positions.")
+
                 # Update positions first with latest prices
                 # We need a map of address -> Token to update prices. 
                 # Since scrape returns list, let's map it.
