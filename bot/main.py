@@ -47,20 +47,11 @@ class Bot:
         # --- START KEEP-ALIVE SERVER (Render) ---
         await start_server()
         
-        # --- AUTO-RESET ON STARTUP ---
-        logger.info("♻️ Performing startup reset (Fresh Start)...")
-        self.trader.reset_portfolio(initial_balance=200.0)
-        self.db.reset_data()
-        # Also clear chat history on startup to be clean? 
-        # User said "when i run the bot... database cleared". 
-        # Might be annoying to wipe chat on every restart if debugging, but user asked for "fresh start".
-        # Let's clean chat history too for consistency with /reset.
-        msg_ids = self.db.get_and_clear_message_ids()
-        for cid, mid in msg_ids:
-             await TelegramAlert.delete_message(cid, mid)
-             await asyncio.sleep(0.05)
+        # --- PERSISTENCE: LOAD STATE ---
+        # We do NOT reset on startup anymore. Persistence is required for 24/7.
+        # User can use /reset command to wipe.
         
-        await TelegramAlert.send_message("🔥 **Bot Started!**\n\nFresh session initialized.\nBalance: **$200.00**\nStrict Mode: **ON**")
+        await TelegramAlert.send_message("🔥 **Bot Started!**\n\nResuming session...\nStrict Mode: **ON**")
         
         while self.running:
             try:
