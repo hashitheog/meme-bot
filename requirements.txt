@@ -1,0 +1,14 @@
+# Core
+aiohttp
+fake-useragent
+colorama
+pydantic
+python-dotenv
+plyer
+logging
+
+# API Clients
+moralis
+
+# Database
+# (sqlite3 is standard lib, no install needed)
