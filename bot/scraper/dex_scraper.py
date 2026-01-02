@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from bot.scraper.dex_api import DexAPI
 from bot.models.token import Token
 
