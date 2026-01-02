@@ -86,19 +86,23 @@ class ScoringEngine:
             checklist_score, checklist_breakdown = self._evaluate_checklist(params, token)
             breakdown.update(checklist_breakdown)
             
-            # Reject if < 16 passes
-            if checklist_score < 16:
+            # Reject if < 14 passes (User requested 14/20)
+            if checklist_score < 14:
+                # DEBUG: Show user what is failing so they know it's working
+                if Config.LOG_LEVEL == "INFO":
+                    print(f"DEBUG: Rejected {token.base_token_symbol} - Score {checklist_score}/20")
                 return 0, breakdown
                 
             # Continue with standard scoring if it passes the "Gate"
             
             # 2. Fundamental Checks
             liq = self._safe_float(params.get("initial_liquidity"))
-            if liq < Config.MIN_LIQUIDITY: 
+            # Allow even $500 liquidity if it passed the checklist
+            if liq < 500: 
                 return 0, {"LOW_LIQUIDITY_STRICT": -1}
                 
             vol = self._safe_float(params.get("volume_h1"))
-            if vol < 1000:
+            if vol < 100: # Lowered volume req
                 return 0, {"DEAD_VOLUME": -1}
 
             # --- A. Age & Quality (10%) ---
@@ -163,12 +167,20 @@ class ScoringEngine:
         passed = 0
         try:
              # --- A. FUNDAMENTAL (ON-CHAIN) ---
-             checks["Market Cap Safe"] = self._safe_float(token.fdv) > 10000
-             checks["Liquidity Safe"] = self._safe_float(token.liquidity_usd) > 5000
+             # 1. Market Cap > $2k (Lowered from 10k)
+             checks["Market Cap Safe"] = self._safe_float(token.fdv) > 2000
+             # 2. Liquidity > $2000 (Lowered from 5000)
+             checks["Liquidity Safe"] = self._safe_float(token.liquidity_usd) > 2000
+             # 3. LP Locked (Keep strict)
              checks["LP Locked"] = self._safe_bool(params.get("lp_locked"), False)
-             checks["Age > 30m"] = self._safe_float(params.get("token_age_minutes")) >= 30
+             # 4. Age > 1m (Lowered from 30m to catch fresh launches)
+             age = self._safe_float(params.get("token_age_minutes"))
+             checks["Age > 1m"] = age >= 1
+             # 5. Mint Disabled
              checks["Mint Disabled"] = self._safe_bool(params.get("mint_disabled"), True)
+             # 6. Supply Normal
              checks["Supply Normal"] = True 
+             # 7. Unverified
              checks["Contract Verified"] = not self._safe_bool(params.get("is_proxy"), False)
              checks["Renounced"] = self._safe_bool(params.get("renounced"), False)
              checks["Buy Tax < 10%"] = self._safe_float(params.get("buy_tax")) < 10

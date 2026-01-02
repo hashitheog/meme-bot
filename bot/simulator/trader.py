@@ -64,6 +64,15 @@ class PaperTrader:
             logger.info(f"Buffered Max Trades ({open_count}/4). Skipping {token.base_token_symbol}.")
             conn.close()
             return False
+            
+    def get_open_count(self) -> int:
+        """Returns number of currently open trades"""
+        conn = self._get_conn()
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) FROM trades WHERE status='OPEN'")
+        count = c.fetchone()[0]
+        conn.close()
+        return count
 
         port = self.get_portfolio()
         balance = port["balance"]

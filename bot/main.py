@@ -168,6 +168,16 @@ class Bot:
         
         # Alerts & Trading
         if result.action in ["HIGH_PRIORITY", "ALERT"]:
+            # Check Trade Limit BEFORE alerting
+            open_count = self.trader.get_open_count()
+            if open_count >= 4:
+                # Limit reached: Do not alert, do not enter trade
+                # Maybe log it as "Missed Signal"
+                logger.info(f"Buffered Max Signals ({open_count}/4). Suppressing alert for {token.base_token_symbol}.")
+                # Optional: Send a "Missed" notification if desired, but user said "only 4 signals at most".
+                # So we stay silent.
+                return 
+
             # Send Alert
             mid = await TelegramAlert.send_alert(result)
             if mid: self.db.log_message(Config.TELEGRAM_CHAT_ID, mid)

@@ -35,8 +35,8 @@ class Config:
     
     # --- 20-PARAMETER CONFIG ---
     # Define weights or thresholds here
-    MIN_LIQUIDITY = 5000 # Increased from 1000
-    MIN_AGE_MINUTES = 5 # Avoid brand new junk
+    MIN_LIQUIDITY = 1000 # Sniper Mode
+    MIN_AGE_MINUTES = 0 # Fresh from the oven
     MAX_AGE_HOURS = 24
     
     # Weights (Total should ideally sum to ~100 or be normalized)

@@ -20,19 +20,29 @@ class TelegramAlert:
         web_link = f" <a href='{token.websites[0]['url']}'>[Web]</a>" if token.websites else ""
         social_links = " ".join([f"<a href='{s['url']}'>[{s['type']}]</a>" for s in token.socials[:3]])
         
+        # Format Passed Checks for display
+        passed_list = result.passed_params
+        # Filter out checklist items for display to save space/cleanliness, or show top ones
+        # User wants to know "criteria it passed". listing all 15 might be long but let's try.
+        # We can format them nicely.
+        
+        passed_text = "\n".join([f"✅ {k}" for k in passed_list[:10]]) # Show top 10 to avoid spam
+        if len(passed_list) > 10: passed_text += f"\n...and {len(passed_list)-10} more"
+
         message = (
-            f"{emoji} <b>{result.action} {result.score:.0f}/100</b>\n\n"
+            f"{emoji} <b>{result.action} {result.score:.0f}/100</b>\n"
+            f"🎯 <b>Strictness: {len(result.passed_params)}/20 Passed</b>\n\n"
             f"🪙 <b>{token.base_token_name}</b> ({token.base_token_symbol})\n"
             f"<code>{token.base_token_address}</code>\n"
-            f"🔗 Chain: {token.chain_id} {web_link} {social_links}\n"
+            f"🔗 Chain: {token.chain_id} {web_link} {social_links}\n\n"
             f"💧 Liq: ${token.liquidity_usd:,.0f} | 🧢 MC: ${token.fdv:,.0f}\n"
             f"🚀 <b>Potential: ${(result.predicted_fdv):,.0f} ({(result.predicted_fdv/token.fdv if token.fdv else 0):.1f}x)</b>\n"
-            f"📊 1H Vol: ${token.volume_h1:,.0f}\n"
-            f"⏰ Age: {(result.details.get('token_age_minutes', 0)):.1f}m\n\n"
-            f"✅ Passed: {len(result.passed_params)}\n"
-            f"❌ Failed: {len(result.failed_params)}\n"
+            f"📊 1H Vol: ${token.volume_h1:,.0f} | ⏰ Age: {(result.details.get('token_age_minutes', 0)):.1f}m\n\n"
+            f"<b>🛡️ Verified Criteria:</b>\n{passed_text}\n\n"
+            f"📡 <b>Data Sources:</b> DexScreener, GoPlus Security, Moralis\n"
+            f"❌ Failed: {len(result.failed_params)} items\n"
             f"🚩 Risks: {', '.join(result.risk_flags) if result.risk_flags else 'None'}\n\n"
-            f"<a href='{token.url}'>View on DexScreener</a>"
+            f"<a href='{token.url}'>🔎 View on DexScreener</a>"
         )
         
         # Determine endpoint (Photo or Text)
