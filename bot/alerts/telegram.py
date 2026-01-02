@@ -1,5 +1,6 @@
 import aiohttp
 import logging
+import html
 from bot.config import Config
 from bot.models.token import AnalysisResult
 
@@ -22,20 +23,22 @@ class TelegramAlert:
         
         # Format Passed Checks for display
         passed_list = result.passed_params
-        # Filter out checklist items for display to save space/cleanliness, or show top ones
-        # User wants to know "criteria it passed". listing all 15 might be long but let's try.
-        # We can format them nicely.
         
-        passed_text = "\n".join([f"✅ {k}" for k in passed_list[:10]]) # Show top 10 to avoid spam
+        # Escape keys to prevent HTML errors with <, >, &
+        passed_text = "\n".join([f"✅ {html.escape(k)}" for k in passed_list[:10]]) 
         if len(passed_list) > 10: passed_text += f"\n...and {len(passed_list)-10} more"
 
         # Use the explicit checklist count if available, otherwise fallback
         strict_count = result.details.get("checklist_passes", len(result.passed_params))
 
+        # Escape names/symbols
+        safe_name = html.escape(token.base_token_name)
+        safe_symbol = html.escape(token.base_token_symbol)
+
         message = (
             f"{emoji} <b>{result.action} {result.score:.0f}/100</b>\n"
             f"🎯 <b>Accuracy/Score: {result.score:.0f}%</b> (Passing: {strict_count}/20)\n\n"
-            f"🪙 <b>{token.base_token_name}</b> ({token.base_token_symbol})\n"
+            f"🪙 <b>{safe_name}</b> ({safe_symbol})\n"
             f"<code>{token.base_token_address}</code>\n"
             f"🔗 Chain: {token.chain_id} {web_link} {social_links}\n\n"
             f"💧 Liq: ${token.liquidity_usd:,.0f} | 🧢 MC: ${token.fdv:,.0f}\n"
