@@ -29,9 +29,12 @@ class TelegramAlert:
         passed_text = "\n".join([f"✅ {k}" for k in passed_list[:10]]) # Show top 10 to avoid spam
         if len(passed_list) > 10: passed_text += f"\n...and {len(passed_list)-10} more"
 
+        # Use the explicit checklist count if available, otherwise fallback
+        strict_count = result.details.get("checklist_passes", len(result.passed_params))
+
         message = (
             f"{emoji} <b>{result.action} {result.score:.0f}/100</b>\n"
-            f"🎯 <b>Strictness: {len(result.passed_params)}/20 Passed</b>\n\n"
+            f"🎯 <b>Accuracy/Score: {result.score:.0f}%</b> (Passing: {strict_count}/20)\n\n"
             f"🪙 <b>{token.base_token_name}</b> ({token.base_token_symbol})\n"
             f"<code>{token.base_token_address}</code>\n"
             f"🔗 Chain: {token.chain_id} {web_link} {social_links}\n\n"

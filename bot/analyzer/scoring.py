@@ -218,7 +218,12 @@ class ScoringEngine:
             traceback.print_exc()
             return 0, {}
             
-        return passed, {"checklist_passes": passed, "checklist_results": checks}
+        # Flatten checks into the return dict so they appear in 'breakdown'
+        # This ensures 'passed_params' in AnalysisResult picks them up.
+        ret = {"checklist_passes": passed}
+        ret.update(checks) # Merge {"Market Cap Safe": True, ...} directly
+        
+        return passed, ret
 
     def _determine_classification(self, score: float, risks: list) -> Tuple[str, str]:
         """
